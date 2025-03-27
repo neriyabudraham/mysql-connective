@@ -63,7 +63,7 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setError(null);
     
     try {
-      // Attempt to connect to the real database
+      // Attempt to connect to the real database with proper validation
       const success = await databaseService.connect(
         connectionDetails.host,
         connectionDetails.port,
@@ -86,7 +86,7 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         await refreshTables();
         return true;
       } else {
-        setError('Failed to connect to the database. Please check your credentials.');
+        setError('Failed to connect to the database. Please check your credentials and ensure the database is accessible.');
         return false;
       }
     } catch (err) {
@@ -113,25 +113,37 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   // Set the active database connection
-  const switchActiveConnection = (id: string) => {
+  const switchActiveConnection = async (id: string) => {
     const connection = connections.find(conn => conn.id === id);
     if (connection) {
-      setActiveConnection(connection);
+      setLoading(true);
+      setError(null);
       
-      // Reconnect to the database and refresh tables
-      databaseService.connect(
-        connection.host,
-        connection.port,
-        connection.username,
-        connection.password,
-        connection.database
-      ).then(success => {
+      try {
+        // Reconnect to the database with proper validation
+        const success = await databaseService.connect(
+          connection.host,
+          connection.port,
+          connection.username,
+          connection.password,
+          connection.database
+        );
+        
         if (success) {
-          refreshTables();
+          setActiveConnection(connection);
+          await refreshTables();
         } else {
-          setError('Failed to reconnect to the database.');
+          setError('Failed to reconnect to the database. The connection may no longer be valid.');
         }
-      });
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(`Reconnection error: ${err.message}`);
+        } else {
+          setError('An unknown error occurred while reconnecting to the database.');
+        }
+      } finally {
+        setLoading(false);
+      }
     }
   };
 

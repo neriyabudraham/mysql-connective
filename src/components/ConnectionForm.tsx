@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowRight, Database, Server } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { ArrowRight, Database, Server, AlertCircle } from 'lucide-react';
 
 const ConnectionForm: React.FC = () => {
   const { addConnection, loading, error } = useDatabase();
@@ -18,6 +19,7 @@ const ConnectionForm: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [database, setDatabase] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,28 +33,48 @@ const ConnectionForm: React.FC = () => {
       return;
     }
     
-    const success = await addConnection({
-      name: connectionName,
-      host,
-      port: parseInt(port, 10),
-      username,
-      password,
-      database,
-    });
+    setIsSubmitting(true);
     
-    if (success) {
-      toast({
-        title: 'Connection Successful',
-        description: `Successfully connected to ${database} on ${host}`,
+    try {
+      const success = await addConnection({
+        name: connectionName,
+        host,
+        port: parseInt(port, 10),
+        username,
+        password,
+        database,
       });
       
-      // Reset form
-      setConnectionName('');
-      setHost('localhost');
-      setPort('3306');
-      setUsername('');
-      setPassword('');
-      setDatabase('');
+      if (success) {
+        toast({
+          title: 'Connection Successful',
+          description: `Successfully connected to ${database} on ${host}`,
+        });
+        
+        // Reset form
+        setConnectionName('');
+        setHost('localhost');
+        setPort('3306');
+        setUsername('');
+        setPassword('');
+        setDatabase('');
+      } else {
+        // The error is already set in the context
+        toast({
+          title: 'Connection Failed',
+          description: error || 'Failed to connect to the database. Please check your credentials.',
+          variant: 'destructive',
+        });
+      }
+    } catch (err) {
+      console.error('Connection error:', err);
+      toast({
+        title: 'Connection Error',
+        description: err instanceof Error ? err.message : 'An unexpected error occurred',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
   
@@ -78,6 +100,7 @@ const ConnectionForm: React.FC = () => {
               onChange={(e) => setConnectionName(e.target.value)}
               className="focus-ring"
               autoComplete="off"
+              required
             />
           </div>
           
@@ -92,6 +115,7 @@ const ConnectionForm: React.FC = () => {
                   onChange={(e) => setHost(e.target.value)}
                   className="pl-9 focus-ring"
                   autoComplete="off"
+                  required
                 />
                 <Server className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               </div>
@@ -106,6 +130,8 @@ const ConnectionForm: React.FC = () => {
                 onChange={(e) => setPort(e.target.value)}
                 className="focus-ring"
                 autoComplete="off"
+                type="number"
+                required
               />
             </div>
           </div>
@@ -119,6 +145,7 @@ const ConnectionForm: React.FC = () => {
               onChange={(e) => setUsername(e.target.value)}
               className="focus-ring"
               autoComplete="off"
+              required
             />
           </div>
           
@@ -144,22 +171,27 @@ const ConnectionForm: React.FC = () => {
               onChange={(e) => setDatabase(e.target.value)}
               className="focus-ring"
               autoComplete="off"
+              required
             />
           </div>
           
           {error && (
-            <div className="rounded-md bg-destructive/15 px-4 py-3 text-sm text-destructive">
-              {error}
-            </div>
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Connection Error</AlertTitle>
+              <AlertDescription>
+                {error}
+              </AlertDescription>
+            </Alert>
           )}
           
           <Button
             type="submit"
             className="w-full"
-            disabled={loading}
+            disabled={loading || isSubmitting}
           >
-            {loading ? 'Connecting...' : 'Connect'}
-            {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
+            {loading || isSubmitting ? 'Connecting...' : 'Connect'}
+            {!loading && !isSubmitting && <ArrowRight className="ml-2 h-4 w-4" />}
           </Button>
         </form>
       </CardContent>
