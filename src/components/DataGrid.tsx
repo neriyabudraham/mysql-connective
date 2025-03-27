@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import databaseService, { Column, Row, QueryOptions } from '@/utils/databaseService';
 import { useToast } from '@/components/ui/use-toast';
@@ -48,7 +47,6 @@ const DataGrid: React.FC<DataGridProps> = ({ tableName }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize] = useState(10);
   
-  // Load data on initial render and when query parameters change
   useEffect(() => {
     fetchData();
   }, [tableName, currentPage, pageSize, sortColumn, sortDirection]);
@@ -63,12 +61,10 @@ const DataGrid: React.FC<DataGridProps> = ({ tableName }) => {
         pageSize,
       };
       
-      // Add sort options if a sort column is selected
       if (sortColumn) {
         options.sort = { column: sortColumn, direction: sortDirection };
       }
       
-      // Add filter options if there's a search value
       if (searchValue) {
         options.filters = { [columns[0]?.name || 'id']: searchValue };
       }
@@ -97,10 +93,8 @@ const DataGrid: React.FC<DataGridProps> = ({ tableName }) => {
   
   const handleSort = (column: string) => {
     if (sortColumn === column) {
-      // If already sorting by this column, toggle direction
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
-      // New sort column
       setSortColumn(column);
       setSortDirection('asc');
     }
@@ -143,12 +137,10 @@ const DataGrid: React.FC<DataGridProps> = ({ tableName }) => {
     try {
       await databaseService.updateRow(tableName, id, editedValues);
       
-      // Update local state with changes
       const updatedRows = [...rows];
       updatedRows[editingRow] = { ...rowData, ...editedValues };
       setRows(updatedRows);
       
-      // Reset editing state
       setEditingRow(null);
       setEditedValues({});
       
@@ -373,13 +365,12 @@ const DataGrid: React.FC<DataGridProps> = ({ tableName }) => {
               <PaginationItem>
                 <PaginationPrevious
                   onClick={() => handlePageChange(Math.max(0, currentPage - 1))}
-                  disabled={currentPage === 0}
+                  isDisabled={currentPage === 0}
                   className={currentPage === 0 ? "pointer-events-none opacity-50" : ""}
                 />
               </PaginationItem>
               
               {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
-                // Show pages around the current page
                 let pageNum: number;
                 if (totalPages <= 5) {
                   pageNum = i;
@@ -406,7 +397,7 @@ const DataGrid: React.FC<DataGridProps> = ({ tableName }) => {
               <PaginationItem>
                 <PaginationNext
                   onClick={() => handlePageChange(Math.min(totalPages - 1, currentPage + 1))}
-                  disabled={currentPage === totalPages - 1}
+                  isDisabled={currentPage === totalPages - 1}
                   className={currentPage === totalPages - 1 ? "pointer-events-none opacity-50" : ""}
                 />
               </PaginationItem>
