@@ -1,20 +1,33 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDatabase } from '@/context/DatabaseContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Database, Table2, Plus, Link, Trash2 } from 'lucide-react';
+import { RefreshCw, Database, Table2, Plus } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import EndpointManager from '@/components/EndpointManager';
+import PublicAccessManager from '@/components/PublicAccessManager';
 
 const TableList: React.FC = () => {
   const { activeConnection, tables, refreshTables, loading, error } = useDatabase();
   const navigate = useNavigate();
+  const [publicTables, setPublicTables] = useState<string[]>([]);
   
   useEffect(() => {
     if (activeConnection) {
       refreshTables();
+      
+      // Load public tables from localStorage if available
+      const savedPublicTables = localStorage.getItem(`publicTables_${activeConnection.id}`);
+      if (savedPublicTables) {
+        try {
+          const parsed = JSON.parse(savedPublicTables);
+          setPublicTables(parsed);
+        } catch (err) {
+          console.error('Failed to parse saved public tables:', err);
+        }
+      }
     }
   }, [activeConnection]);
   
@@ -101,8 +114,12 @@ const TableList: React.FC = () => {
                     </div>
                   </div>
                 </Button>
-                <div className="ml-12 flex items-center">
+                <div className="ml-12 flex items-center gap-2">
                   <EndpointManager tableName={table.name} />
+                  <PublicAccessManager 
+                    tableName={table.name} 
+                    defaultIsPublic={publicTables.includes(table.name)}
+                  />
                 </div>
               </div>
             ))}

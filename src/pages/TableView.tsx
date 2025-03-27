@@ -45,7 +45,7 @@ const TableView = () => {
                 <LayoutGrid className="h-5 w-5 text-primary" />
               </div>
               <h1 className="text-3xl font-medium tracking-tight">
-                {tableName}
+                טבלה: {tableName}
               </h1>
             </div>
           </div>
