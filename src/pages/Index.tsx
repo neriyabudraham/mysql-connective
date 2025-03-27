@@ -10,7 +10,7 @@ const Index = () => {
   const { activeConnection } = useDatabase();
   const navigate = useNavigate();
   
-  // Redirect to dashboard if already connected
+  // הפנה לדשבורד אם כבר מחובר
   useEffect(() => {
     if (activeConnection) {
       navigate('/dashboard');
@@ -27,14 +27,13 @@ const Index = () => {
         </div>
         <h1 className="font-display text-3xl font-medium tracking-tight mb-2">MySQL Connector</h1>
         <p className="text-muted-foreground mb-4">
-          Connect to your MySQL database and visualize data in a spreadsheet-like interface
+          התחבר למסד הנתונים MySQL שלך וצפה בנתונים בממשק דמוי גיליון אלקטרוני
         </p>
         
         <Alert className="bg-blue-50 text-blue-800 border-blue-200 mb-4">
           <Info className="h-4 w-4 text-blue-600 mr-2" />
           <AlertDescription className="text-sm">
-            This is a demonstration of a database UI. In a real application, direct database connections from a 
-            browser are not possible for security reasons. A backend API would be required.
+            זוהי הדגמה של ממשק למסד נתונים. באפליקציה אמיתית, חיבורים ישירים למסד נתונים מהדפדפן אינם אפשריים מטעמי אבטחה. API אחורי יידרש.
           </AlertDescription>
         </Alert>
       </div>
@@ -42,7 +41,7 @@ const Index = () => {
       <ConnectionForm />
       
       <div className="mt-6 text-center text-sm text-muted-foreground animate-fadeIn opacity-75">
-        <p>For demonstration purposes only</p>
+        <p>למטרות הדגמה בלבד</p>
       </div>
     </div>
   );

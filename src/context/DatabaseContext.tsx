@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import databaseService from '@/utils/databaseService';
+import { useAuth } from '@/context/AuthContext';
 
 export interface DatabaseConnection {
   id: string;
@@ -39,27 +40,56 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [tables, setTables] = useState<TableInfo[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
 
-  // Load saved connections from localStorage on initial render
+  // תטען את החיבורים השמורים מלוקל סטורג' עבור המשתמש הנוכחי
   useEffect(() => {
-    const savedConnections = localStorage.getItem('databaseConnections');
-    if (savedConnections) {
-      try {
-        const parsed = JSON.parse(savedConnections);
-        setConnections(parsed);
-        console.log('Loaded saved connections:', parsed);
-      } catch (err) {
-        console.error('Failed to parse saved connections:', err);
+    if (user) {
+      const savedConnections = localStorage.getItem(`databaseConnections_${user.id}`);
+      const activeConnectionId = localStorage.getItem(`activeConnection_${user.id}`);
+      
+      if (savedConnections) {
+        try {
+          const parsed = JSON.parse(savedConnections);
+          setConnections(parsed);
+          console.log('Loaded saved connections for user:', user.id, parsed);
+          
+          // אם יש חיבור פעיל, נסה לחבר אליו
+          if (activeConnectionId) {
+            const active = parsed.find((conn: DatabaseConnection) => conn.id === activeConnectionId);
+            if (active) {
+              switchActiveConnection(active.id);
+            }
+          }
+        } catch (err) {
+          console.error('Failed to parse saved connections:', err);
+        }
       }
+    } else {
+      // אם אין משתמש מחובר, איפוס החיבורים
+      setConnections([]);
+      setActiveConnection(null);
+      setTables([]);
     }
-  }, []);
+  }, [user]);
 
-  // Save connections to localStorage when they change
+  // שמור את החיבורים ל-localStorage כשהם משתנים
   useEffect(() => {
-    localStorage.setItem('databaseConnections', JSON.stringify(connections));
-  }, [connections]);
+    if (user && connections.length > 0) {
+      localStorage.setItem(`databaseConnections_${user.id}`, JSON.stringify(connections));
+    }
+  }, [connections, user]);
 
-  // Add a new database connection
+  // שמור את החיבור הפעיל ל-localStorage כשהוא משתנה
+  useEffect(() => {
+    if (user && activeConnection) {
+      localStorage.setItem(`activeConnection_${user.id}`, activeConnection.id);
+    } else if (user) {
+      localStorage.removeItem(`activeConnection_${user.id}`);
+    }
+  }, [activeConnection, user]);
+
+  // הוסף חיבור חדש למסד נתונים
   const addConnection = async (connectionDetails: Omit<DatabaseConnection, 'id' | 'connected'>) => {
     setLoading(true);
     setError(null);
@@ -67,7 +97,7 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       console.log('Attempting to connect with:', connectionDetails);
       
-      // Attempt to connect to the database
+      // נסה להתחבר למסד הנתונים
       const success = await databaseService.connect(
         connectionDetails.host,
         connectionDetails.port,
@@ -88,7 +118,7 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setConnections(prev => [...prev, newConnection]);
         setActiveConnection(newConnection);
         
-        // Load tables for the new connection
+        // טען טבלאות עבור החיבור החדש
         await refreshTables();
         return true;
       } else {
@@ -108,18 +138,18 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  // Remove a database connection
+  // הסר חיבור למסד נתונים
   const removeConnection = (id: string) => {
     setConnections(prev => prev.filter(conn => conn.id !== id));
     
-    // If the active connection is removed, reset it
+    // אם החיבור הפעיל הוסר, אפס אותו
     if (activeConnection?.id === id) {
       setActiveConnection(null);
       setTables([]);
     }
   };
 
-  // Set the active database connection
+  // קבע את החיבור הפעיל למסד נתונים
   const switchActiveConnection = async (id: string) => {
     const connection = connections.find(conn => conn.id === id);
     if (connection) {
@@ -129,7 +159,7 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       try {
         console.log('Switching to connection:', connection);
         
-        // Reconnect to the database
+        // התחבר מחדש למסד הנתונים
         const success = await databaseService.connect(
           connection.host,
           connection.port,
@@ -157,13 +187,16 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  // Disconnect from the current database
+  // התנתק ממסד הנתונים הנוכחי
   const disconnectDatabase = () => {
     setActiveConnection(null);
     setTables([]);
+    if (user) {
+      localStorage.removeItem(`activeConnection_${user.id}`);
+    }
   };
 
-  // Refresh the list of tables for the active connection
+  // רענן את רשימת הטבלאות עבור החיבור הפעיל
   const refreshTables = async (): Promise<TableInfo[]> => {
     if (!activeConnection) return [];
     
@@ -173,13 +206,13 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       console.log('Fetching tables for database:', activeConnection.database);
       
-      // Fetch tables from the database service
+      // שלוף טבלאות משירות מסד הנתונים
       const tableNames = await databaseService.getTables(activeConnection.database);
       
-      // Convert to TableInfo format
+      // המר לפורמט TableInfo
       const tableInfos: TableInfo[] = tableNames.map(name => ({
         name,
-        schema: 'public' // Default schema, would be fetched from real DB
+        schema: 'public' // ברירת מחדל לסכמה, יחזור מה-DB האמיתי
       }));
       
       console.log('Retrieved tables:', tableInfos);
@@ -218,7 +251,7 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   );
 };
 
-// Helper hook to use the database context
+// עזר Hook לשימוש בקונטקסט מסד הנתונים
 export const useDatabase = () => {
   const context = useContext(DatabaseContext);
   if (context === undefined) {

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDatabase } from '@/context/DatabaseContext';
+import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -13,16 +14,17 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import ConnectionForm from './ConnectionForm';
-import { Database, LogOut, Plus, ChevronDown, ExternalLink } from 'lucide-react';
+import { Database, LogOut, Plus, ChevronDown, User } from 'lucide-react';
 
 const Header: React.FC = () => {
   const { connections, activeConnection, setActiveConnection, disconnectDatabase } = useDatabase();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
   const handleLogout = () => {
     disconnectDatabase();
-    navigate('/');
+    logout();
   };
   
   const handleSwitchConnection = (id: string) => {
@@ -75,6 +77,25 @@ const Header: React.FC = () => {
             </div>
             
             <div className="flex items-center gap-2">
+              {user && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="gap-1">
+                      <User className="h-4 w-4" />
+                      <span>{user.username}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>חשבון משתמש</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>התנתק</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+
               <Button
                 variant="outline"
                 size="sm"
@@ -89,7 +110,7 @@ const Header: React.FC = () => {
                 variant="ghost"
                 size="sm"
                 className="gap-1"
-                onClick={handleLogout}
+                onClick={() => disconnectDatabase()}
               >
                 <LogOut className="h-4 w-4" />
                 <span>Disconnect</span>
