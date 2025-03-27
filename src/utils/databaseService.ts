@@ -1,6 +1,7 @@
-// This service handles database operations.
-// Note: Browser-based applications CANNOT connect directly to a MySQL database.
-// A backend service (like Node.js, PHP, etc.) is required for security reasons.
+
+// This service handles database operations through a backend API.
+// Browser-based applications CANNOT connect directly to a MySQL database.
+// This service communicates with your backend API.
 
 export interface Column {
   name: string;
@@ -35,6 +36,7 @@ export class DatabaseService {
     database: string;
   } | null = null;
   private connected: boolean = false;
+  private apiBaseUrl: string = ''; // כאן יש להזין את כתובת ה-API שלך, למשל: 'https://your-api.example.com/api'
 
   private constructor() {
     // Initialize empty
@@ -47,8 +49,12 @@ export class DatabaseService {
     return DatabaseService.instance;
   }
 
-  // Attempt to connect to a database
-  // Note: This would normally connect to a backend API, not directly to MySQL
+  // הגדר את כתובת ה-API
+  public setApiBaseUrl(url: string): void {
+    this.apiBaseUrl = url;
+  }
+
+  // התחבר לבסיס נתונים דרך ה-API
   public async connect(
     host: string,
     port: number,
@@ -57,80 +63,112 @@ export class DatabaseService {
     database: string
   ): Promise<boolean> {
     try {
-      console.log(`Attempting to connect to MySQL database: ${database} on ${host}:${port}`);
+      console.log(`Attempting to connect to MySQL database: ${database} on ${host}:${port} via API`);
       
-      // Validate basic connection parameters
-      if (!host || !username || !database) {
-        throw new Error("Missing required connection parameters");
+      if (!this.apiBaseUrl) {
+        throw new Error("API URL not set. Please call setApiBaseUrl() first.");
       }
       
-      // For demonstration purposes only:
-      // In a real app, this would call a backend API endpoint
+      // שליחת בקשת התחברות ל-API
+      const response = await fetch(`${this.apiBaseUrl}/connect`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          host,
+          port,
+          username,
+          password,
+          database
+        }),
+      });
       
-      // Add realistic delay to simulate network request
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Basic validation for demonstration
-      if (password === 'wrong_password') {
-        throw new Error("Access denied for user '" + username + "'@'" + host + "' (using password: YES)");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Connection failed");
       }
       
-      if (host === 'invalid.host' || username === 'invalid_user') {
-        throw new Error("Could not connect to MySQL server on '" + host + "' (" + port + ")");
+      const result = await response.json();
+      
+      if (result.success) {
+        this.connectionDetails = {
+          host,
+          port,
+          username,
+          password,
+          database
+        };
+        
+        this.connected = true;
+        return true;
+      } else {
+        throw new Error(result.message || "Connection failed");
       }
-      
-      // This is just for demonstration. In a real app, 
-      // this would be based on the response from the backend API
-      this.connectionDetails = {
-        host,
-        port,
-        username,
-        password,
-        database
-      };
-      
-      this.connected = true;
-      return true;
     } catch (error) {
       console.error("Database connection error:", error);
       this.connected = false;
-      throw error; // Re-throw to be handled by the caller
+      throw error;
     }
   }
 
-  // Fetch table names from the database
+  // קבל רשימת טבלאות מבסיס הנתונים דרך ה-API
   public async getTables(database: string): Promise<string[]> {
     if (!this.connected || !this.connectionDetails) {
       throw new Error("Not connected to database");
     }
     
-    console.log(`Fetching tables for database: ${database}`);
+    console.log(`Fetching tables for database: ${database} via API`);
     
-    // This is a simulation
-    // In a real implementation, this would make an API call to a backend
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    // This would be replaced with real data from the backend
-    return ["This is a demonstration only", "Real connections require a backend API"];
+    try {
+      const response = await fetch(`${this.apiBaseUrl}/tables?database=${encodeURIComponent(database)}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch tables");
+      }
+      
+      const result = await response.json();
+      return result.tables;
+    } catch (error) {
+      console.error("Error fetching tables:", error);
+      throw error;
+    }
   }
 
-  // Fetch table schema - would be replaced with real API calls in production
+  // קבל סכמה של טבלה דרך ה-API
   public async getTableSchema(tableName: string): Promise<Column[]> {
     if (!this.connected || !this.connectionDetails) {
       throw new Error("Not connected to database");
     }
     
-    await new Promise(resolve => setTimeout(resolve, 600));
-    
-    // This would be replaced with a real API call
-    return [
-      { name: 'id', type: 'int', nullable: false },
-      { name: 'demonstration_only', type: 'varchar', nullable: false },
-      { name: 'requires_backend', type: 'varchar', nullable: false }
-    ];
+    try {
+      const response = await fetch(`${this.apiBaseUrl}/schema/${encodeURIComponent(tableName)}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch table schema");
+      }
+      
+      const result = await response.json();
+      return result.columns;
+    } catch (error) {
+      console.error("Error fetching table schema:", error);
+      throw error;
+    }
   }
 
-  // Query data from a table - would be replaced with real API calls in production
+  // שאילתת נתונים מטבלה דרך ה-API
   public async queryTable(
     tableName: string,
     options: QueryOptions = {}
@@ -139,27 +177,28 @@ export class DatabaseService {
       throw new Error("Not connected to database");
     }
     
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    // This would be replaced with a real API call
-    const columns = await this.getTableSchema(tableName);
-    
-    const rows: Row[] = [
-      { 
-        id: 1, 
-        demonstration_only: "This is a demonstration only", 
-        requires_backend: "Real database connections require a backend API"
+    try {
+      const response = await fetch(`${this.apiBaseUrl}/query/${encodeURIComponent(tableName)}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(options),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Query failed");
       }
-    ];
-    
-    return { 
-      columns, 
-      rows,
-      total: rows.length 
-    };
+      
+      return await response.json();
+    } catch (error) {
+      console.error("Error querying table:", error);
+      throw error;
+    }
   }
   
-  // Update a row in a table - this is the missing method that's causing the error
+  // עדכון שורה בטבלה דרך ה-API
   public async updateRow(
     tableName: string, 
     id: any, 
@@ -171,20 +210,26 @@ export class DatabaseService {
     
     console.log(`Updating row with ID ${id} in table: ${tableName}`, updatedData);
     
-    // This is a simulation
-    // In a real implementation, this would make an API call to a backend
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    // For demonstration purposes, we'll always return success
-    // In a real app, this would return whether the update was successful based on API response
-    
-    // This method would normally send this data to a backend API which would:
-    // 1. Validate the data
-    // 2. Prepare an SQL UPDATE statement
-    // 3. Execute the statement
-    // 4. Return success/failure
-    
-    return true;
+    try {
+      const response = await fetch(`${this.apiBaseUrl}/update/${encodeURIComponent(tableName)}/${encodeURIComponent(id)}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedData),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Update failed");
+      }
+      
+      const result = await response.json();
+      return result.success;
+    } catch (error) {
+      console.error("Error updating row:", error);
+      throw error;
+    }
   }
 }
 
