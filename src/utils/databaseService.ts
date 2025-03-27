@@ -1,4 +1,3 @@
-
 // This service handles database operations.
 // Note: Browser-based applications CANNOT connect directly to a MySQL database.
 // A backend service (like Node.js, PHP, etc.) is required for security reasons.
@@ -158,6 +157,34 @@ export class DatabaseService {
       rows,
       total: rows.length 
     };
+  }
+  
+  // Update a row in a table - this is the missing method that's causing the error
+  public async updateRow(
+    tableName: string, 
+    id: any, 
+    updatedData: Record<string, any>
+  ): Promise<boolean> {
+    if (!this.connected || !this.connectionDetails) {
+      throw new Error("Not connected to database");
+    }
+    
+    console.log(`Updating row with ID ${id} in table: ${tableName}`, updatedData);
+    
+    // This is a simulation
+    // In a real implementation, this would make an API call to a backend
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    // For demonstration purposes, we'll always return success
+    // In a real app, this would return whether the update was successful based on API response
+    
+    // This method would normally send this data to a backend API which would:
+    // 1. Validate the data
+    // 2. Prepare an SQL UPDATE statement
+    // 3. Execute the statement
+    // 4. Return success/failure
+    
+    return true;
   }
 }
 
