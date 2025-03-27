@@ -35,6 +35,9 @@ export class DatabaseService {
   } | null = null;
   private connected: boolean = false;
   private apiBaseUrl: string = '';
+  private securityHeaders: Record<string, string> = {
+    'X-Frontend-Access': 'neriyabudraham'
+  };
 
   private constructor() {
     // Initialize empty
@@ -103,7 +106,9 @@ export class DatabaseService {
     console.log(`Fetching tables from API for database: ${database}`);
     
     try {
-      const response = await fetch(`${this.apiBaseUrl}/tables`);
+      const response = await fetch(`${this.apiBaseUrl}/tables`, {
+        headers: this.securityHeaders
+      });
       
       if (!response.ok) {
         throw new Error(`API error: ${response.status} ${response.statusText}`);
@@ -123,7 +128,9 @@ export class DatabaseService {
     }
     
     try {
-      const response = await fetch(`${this.apiBaseUrl}/${tableName}/columns`);
+      const response = await fetch(`${this.apiBaseUrl}/${tableName}/columns`, {
+        headers: this.securityHeaders
+      });
       
       if (!response.ok) {
         throw new Error(`API error: ${response.status} ${response.statusText}`);
@@ -184,7 +191,9 @@ export class DatabaseService {
         url += `?${queryParams.toString()}`;
       }
       
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: this.securityHeaders
+      });
       
       if (!response.ok) {
         throw new Error(`API error: ${response.status} ${response.statusText}`);
@@ -220,7 +229,8 @@ export class DatabaseService {
       const response = await fetch(`${this.apiBaseUrl}/${tableName}/${id}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          ...this.securityHeaders
         },
         body: JSON.stringify(updatedData)
       });
@@ -251,7 +261,8 @@ export class DatabaseService {
       const response = await fetch(`${this.apiBaseUrl}/${tableName}`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          ...this.securityHeaders
         },
         body: JSON.stringify(data)
       });
@@ -280,7 +291,8 @@ export class DatabaseService {
     
     try {
       const response = await fetch(`${this.apiBaseUrl}/${tableName}/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: this.securityHeaders
       });
       
       if (!response.ok) {
