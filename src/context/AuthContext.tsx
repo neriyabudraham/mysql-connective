@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -11,6 +10,7 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   login: (username: string, password: string) => Promise<boolean>;
+  register: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -93,6 +93,66 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const register = async (username: string, password: string): Promise<boolean> => {
+    setIsLoading(true);
+    
+    try {
+      // סימולציה של בקשת רישום לשרת
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // בדיקה אם שם המשתמש כבר קיים
+      const userExists = DEMO_USERS.some(u => u.username === username);
+      
+      if (userExists) {
+        toast({
+          title: 'הרשמה נכשלה',
+          description: 'שם המשתמש כבר קיים במערכת',
+          variant: 'destructive',
+        });
+        return false;
+      }
+      
+      // יצירת משתמש חדש
+      const newUserId = (Math.max(...DEMO_USERS.map(u => parseInt(u.id))) + 1).toString();
+      
+      const newUser = {
+        id: newUserId,
+        username,
+        password
+      };
+      
+      // במערכת אמיתית, נשלח את המשתמש החדש לשרת
+      // כאן אנחנו רק מוסיפים אותו למערך המשתמשים המקומי
+      DEMO_USERS.push(newUser);
+      
+      // שמירת פרטי המשתמש ללא הסיסמה
+      const userData: User = {
+        id: newUser.id,
+        username: newUser.username
+      };
+      
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      toast({
+        title: 'הרשמה בוצעה בהצלחה',
+        description: `ברוך הבא, ${userData.username}!`,
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Registration error:', error);
+      toast({
+        title: 'שגיאת הרשמה',
+        description: 'אירעה שגיאה בעת ניסיון ההרשמה',
+        variant: 'destructive',
+      });
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
@@ -104,7 +164,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

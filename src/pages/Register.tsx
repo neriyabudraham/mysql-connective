@@ -14,16 +14,16 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Database, Info, Loader2, UserPlus } from 'lucide-react';
+import { Database, Info, Loader2, ArrowLeft } from 'lucide-react';
 
-const Login = () => {
-  const { login, user, isLoading } = useAuth();
+const Register = () => {
+  const { register, user, isLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // אם המשתמש כבר מחובר, הפנה לדף הראשי
@@ -36,7 +36,7 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!username || !password) {
+    if (!username || !password || !confirmPassword) {
       toast({
         title: 'שגיאה',
         description: 'יש למלא את כל השדות',
@@ -45,10 +45,28 @@ const Login = () => {
       return;
     }
     
+    if (password !== confirmPassword) {
+      toast({
+        title: 'שגיאה',
+        description: 'הסיסמאות אינן תואמות',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    if (password.length < 6) {
+      toast({
+        title: 'שגיאה',
+        description: 'הסיסמה חייבת להכיל לפחות 6 תווים',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
-      const success = await login(username, password);
+      const success = await register(username, password);
       
       if (success) {
         navigate('/dashboard');
@@ -77,25 +95,18 @@ const Login = () => {
         </div>
         <h1 className="font-display text-3xl font-medium tracking-tight mb-2">MySQL Connector</h1>
         <p className="text-muted-foreground mb-4">
-          התחבר למערכת כדי לנהל את החיבורים שלך למסדי נתונים
+          צור חשבון חדש כדי להתחיל להשתמש במערכת
         </p>
       </div>
       
       <Card className="w-full max-w-md glass-card animate-fadeIn">
         <CardHeader className="pb-3">
-          <CardTitle className="text-2xl font-medium">התחברות</CardTitle>
+          <CardTitle className="text-2xl font-medium">הרשמה</CardTitle>
           <CardDescription>
-            הזן את פרטי המשתמש שלך כדי להתחבר למערכת
+            צור חשבון חדש במערכת
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Alert className="bg-blue-50 text-blue-800 border-blue-200 mb-4">
-            <Info className="h-4 w-4 text-blue-600 mr-2" />
-            <AlertDescription className="text-sm">
-              לצורך הדגמה: שם משתמש: <strong>admin</strong>, סיסמה: <strong>admin123</strong>
-            </AlertDescription>
-          </Alert>
-          
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="username">שם משתמש</Label>
@@ -121,7 +132,22 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="הזן סיסמה"
                 className="focus-ring"
-                autoComplete="current-password"
+                autoComplete="new-password"
+                required
+                dir="rtl"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">אימות סיסמה</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="הזן את הסיסמה שוב"
+                className="focus-ring"
+                autoComplete="new-password"
                 required
                 dir="rtl"
               />
@@ -135,19 +161,19 @@ const Login = () => {
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  <span>מתחבר...</span>
+                  <span>מבצע רישום...</span>
                 </>
               ) : (
-                <span>התחבר</span>
+                <span>הרשם</span>
               )}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="flex flex-col items-center gap-2 border-t pt-4 px-6">
-          <Button variant="outline" asChild className="w-full">
-            <Link to="/register">
-              <UserPlus className="mr-2 h-4 w-4" />
-              צור חשבון חדש
+          <Button variant="ghost" asChild className="w-full">
+            <Link to="/login">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              חזרה למסך ההתחברות
             </Link>
           </Button>
           <p className="text-sm text-muted-foreground text-center">
@@ -159,4 +185,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register;
