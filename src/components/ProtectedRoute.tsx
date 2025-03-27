@@ -21,7 +21,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  // אם המשתמש לא מחובר, הפנה לדף ההתחברות
+  // אם המשתמש לא מחובר, הפנה לדף ההתחברות עם המיקום הנוכחי
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }

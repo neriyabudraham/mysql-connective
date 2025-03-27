@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useDatabase } from '@/context/DatabaseContext';
 import { useToast } from '@/components/ui/use-toast';
 import { 
   Card, 
@@ -18,7 +18,9 @@ import { Database, Loader2, UserPlus } from 'lucide-react';
 
 const Login = () => {
   const { login, user, isLoading } = useAuth();
+  const { activeConnection } = useDatabase();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   
   const [username, setUsername] = useState('');
@@ -28,9 +30,16 @@ const Login = () => {
   // Redirect if user is already logged in
   useEffect(() => {
     if (user && !isLoading) {
-      navigate('/dashboard');
+      const from = location.state?.from?.pathname;
+      if (from) {
+        navigate(from);
+      } else if (activeConnection) {
+        navigate('/dashboard');
+      } else {
+        navigate('/');
+      }
     }
-  }, [user, isLoading, navigate]);
+  }, [user, isLoading, activeConnection, navigate, location]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,7 +59,7 @@ const Login = () => {
       const success = await login(username, password);
       
       if (success) {
-        navigate('/dashboard');
+        // Login succeeded, will redirect in useEffect above
       }
     } finally {
       setIsSubmitting(false);
