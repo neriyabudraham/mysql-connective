@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -36,7 +37,7 @@ const Login = () => {
       } else if (activeConnection) {
         navigate('/dashboard');
       } else {
-        navigate('/');
+        navigate('/connect');
       }
     }
   }, [user, isLoading, activeConnection, navigate, location]);

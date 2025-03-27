@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useDatabase } from '@/context/DatabaseContext';
 import { useToast } from '@/components/ui/use-toast';
 import { 
   Card, 
@@ -18,6 +18,7 @@ import { Database, Info, Loader2, ArrowLeft } from 'lucide-react';
 
 const Register = () => {
   const { register, user, isLoading } = useAuth();
+  const { activeConnection } = useDatabase();
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -29,9 +30,13 @@ const Register = () => {
   // אם המשתמש כבר מחובר, הפנה לדף הראשי
   useEffect(() => {
     if (user && !isLoading) {
-      navigate('/dashboard');
+      if (activeConnection) {
+        navigate('/dashboard');
+      } else {
+        navigate('/connect');
+      }
     }
-  }, [user, isLoading, navigate]);
+  }, [user, isLoading, activeConnection, navigate]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
