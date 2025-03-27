@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import databaseService from '@/utils/databaseService';
 
 export interface DatabaseConnection {
   id: string;
@@ -62,9 +63,14 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setError(null);
     
     try {
-      // Simulate connecting to the database
-      // In a real app, you would make an API call to test the connection
-      const success = await testDatabaseConnection(connectionDetails);
+      // Attempt to connect to the real database
+      const success = await databaseService.connect(
+        connectionDetails.host,
+        connectionDetails.port,
+        connectionDetails.username,
+        connectionDetails.password,
+        connectionDetails.database
+      );
       
       if (success) {
         const newConnection: DatabaseConnection = {
@@ -111,7 +117,21 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const connection = connections.find(conn => conn.id === id);
     if (connection) {
       setActiveConnection(connection);
-      refreshTables();
+      
+      // Reconnect to the database and refresh tables
+      databaseService.connect(
+        connection.host,
+        connection.port,
+        connection.username,
+        connection.password,
+        connection.database
+      ).then(success => {
+        if (success) {
+          refreshTables();
+        } else {
+          setError('Failed to reconnect to the database.');
+        }
+      });
     }
   };
 
@@ -129,11 +149,17 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setError(null);
     
     try {
-      // Simulate fetching tables
-      // In a real app, you would make an API call to get the tables
-      const tables = await getDatabaseTables(activeConnection);
-      setTables(tables);
-      return tables;
+      // Fetch real tables from the database service
+      const tableNames = await databaseService.getTables(activeConnection.database);
+      
+      // Convert to TableInfo format
+      const tableInfos: TableInfo[] = tableNames.map(name => ({
+        name,
+        schema: 'public' // Default schema, would be fetched from real DB
+      }));
+      
+      setTables(tableInfos);
+      return tableInfos;
     } catch (err) {
       if (err instanceof Error) {
         setError(`Failed to fetch tables: ${err.message}`);
@@ -174,32 +200,3 @@ export const useDatabase = () => {
   }
   return context;
 };
-
-// Mock functions for testing/development purposes
-
-async function testDatabaseConnection(
-  connection: Omit<DatabaseConnection, 'id' | 'connected'>
-): Promise<boolean> {
-  // This is a mock implementation. In a real app, you would make an API call to test the connection.
-  await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network latency
-  
-  // Always succeed for now (in development)
-  return true;
-  
-  // For testing error states, you could return false or throw an error:
-  // throw new Error("Could not connect to database server");
-}
-
-async function getDatabaseTables(connection: DatabaseConnection): Promise<TableInfo[]> {
-  // This is a mock implementation. In a real app, you would make an API call to get the tables.
-  await new Promise(resolve => setTimeout(resolve, 600)); // Simulate network latency
-  
-  // Return some mock tables
-  return [
-    { name: 'users', schema: 'public' },
-    { name: 'products', schema: 'public' },
-    { name: 'orders', schema: 'public' },
-    { name: 'customers', schema: 'public' },
-    { name: 'inventory', schema: 'warehouse' }
-  ];
-}
