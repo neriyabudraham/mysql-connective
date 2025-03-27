@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ArrowRight, Database, Server, AlertCircle, Loader2 } from 'lucide-react';
+import { ArrowRight, Database, Server, AlertCircle, Loader2, InfoIcon } from 'lucide-react';
 
 const ConnectionForm: React.FC = () => {
   const { addConnection, loading, error } = useDatabase();
@@ -50,7 +50,7 @@ const ConnectionForm: React.FC = () => {
       if (success) {
         toast({
           title: 'Connection Successful',
-          description: `Successfully connected to ${database} on ${host}`,
+          description: `Successfully connected to ${database} on ${host} (Demonstration Mode)`,
         });
         
         // Reset form
@@ -83,16 +83,28 @@ const ConnectionForm: React.FC = () => {
   
   return (
     <Card className="w-full max-w-md glass-card animate-fadeIn">
-      <CardHeader className="space-y-1">
-        <div className="flex items-center gap-2">
-          <Database className="h-5 w-5 text-primary" />
-          <CardTitle className="text-2xl font-medium">Connect to Database</CardTitle>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <CardTitle className="text-2xl font-medium flex items-center gap-2">
+              <Database className="h-5 w-5 text-primary" />
+              Connect to Database
+            </CardTitle>
+            <CardDescription>
+              Enter your MySQL database credentials to connect
+            </CardDescription>
+          </div>
         </div>
-        <CardDescription>
-          Enter your MySQL database credentials to connect
-        </CardDescription>
       </CardHeader>
       <CardContent>
+        <Alert className="mb-4 bg-amber-50 text-amber-800 border-amber-200">
+          <InfoIcon className="h-4 w-4 text-amber-600" />
+          <AlertTitle>Demonstration Mode</AlertTitle>
+          <AlertDescription className="text-sm">
+            This is a front-end demo only. In a real application, connecting to MySQL requires a secure backend service.
+          </AlertDescription>
+        </Alert>
+        
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="connection-name">Connection Name</Label>
@@ -207,6 +219,11 @@ const ConnectionForm: React.FC = () => {
           </Button>
         </form>
       </CardContent>
+      <CardFooter className="text-sm text-muted-foreground border-t pt-4 px-6">
+        <p>
+          Note: In a production app, these credentials would be sent to a secure backend API, not used directly from the browser.
+        </p>
+      </CardFooter>
     </Card>
   );
 };
