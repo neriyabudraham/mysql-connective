@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -15,12 +16,6 @@ interface AuthContextType {
   isLoading: boolean;
 }
 
-// משתמשים לדוגמה - במערכת אמיתית זה יהיה בשרת
-const DEMO_USERS = [
-  { id: '1', username: 'admin', password: 'admin123' },
-  { id: '2', username: 'user', password: 'user123' }
-];
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -29,7 +24,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // בדיקה אם המשתמש מחובר כבר בעת טעינת האפליקציה
+  // Check if user is already logged in when loading the application
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
@@ -48,38 +43,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
-      // סימולציה של בקשת התחברות לשרת
+      // This would be a real API call in production
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // חיפוש המשתמש בנתונים לדוגמה
-      const foundUser = DEMO_USERS.find(
-        u => u.username === username && u.password === password
-      );
+      // Create a user object (in a real app, this would come from the backend)
+      const userData: User = {
+        id: Date.now().toString(), // In a real app, this would be a real user ID
+        username: username
+      };
       
-      if (foundUser) {
-        // שמירת פרטי המשתמש ללא הסיסמה
-        const userData: User = {
-          id: foundUser.id,
-          username: foundUser.username
-        };
-        
-        setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
-        
-        toast({
-          title: 'התחברות בוצעה בהצלחה',
-          description: `ברוך הבא, ${userData.username}!`,
-        });
-        
-        return true;
-      } else {
-        toast({
-          title: 'התחברות נכשלה',
-          description: 'שם משתמש או סיסמה שגויים',
-          variant: 'destructive',
-        });
-        return false;
-      }
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      toast({
+        title: 'התחברות בוצעה בהצלחה',
+        description: `ברוך הבא, ${userData.username}!`,
+      });
+      
+      return true;
     } catch (error) {
       console.error('Login error:', error);
       toast({
@@ -97,38 +78,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
-      // סימולציה של בקשת רישום לשרת
+      // This would be a real API call in production
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // בדיקה אם שם המשתמש כבר קיים
-      const userExists = DEMO_USERS.some(u => u.username === username);
-      
-      if (userExists) {
-        toast({
-          title: 'הרשמה נכשלה',
-          description: 'שם המשתמש כבר קיים במערכת',
-          variant: 'destructive',
-        });
-        return false;
-      }
-      
-      // יצירת משתמש חדש
-      const newUserId = (Math.max(...DEMO_USERS.map(u => parseInt(u.id))) + 1).toString();
-      
-      const newUser = {
-        id: newUserId,
-        username,
-        password
-      };
-      
-      // במערכת אמיתית, נשלח את המשתמש החדש לשרת
-      // כאן אנחנו רק מוסיפים אותו למערך המשתמשים המקומי
-      DEMO_USERS.push(newUser);
-      
-      // שמירת פרטי המשתמש ללא הסיסמה
+      // Create a new user (in a real app, this would be done by the backend)
       const userData: User = {
-        id: newUser.id,
-        username: newUser.username
+        id: Date.now().toString(), // In a real app, this would be a real user ID
+        username: username
       };
       
       setUser(userData);

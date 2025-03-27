@@ -14,8 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Database, Info, Loader2, UserPlus } from 'lucide-react';
+import { Database, Loader2, UserPlus } from 'lucide-react';
 
 const Login = () => {
   const { login, user, isLoading } = useAuth();
@@ -26,7 +25,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // אם המשתמש כבר מחובר, הפנה לדף הראשי
+  // Redirect if user is already logged in
   useEffect(() => {
     if (user && !isLoading) {
       navigate('/dashboard');
@@ -58,7 +57,7 @@ const Login = () => {
     }
   };
   
-  // אם בטעינה, הצג מסך טעינה
+  // Show loading screen
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -89,13 +88,6 @@ const Login = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Alert className="bg-blue-50 text-blue-800 border-blue-200 mb-4">
-            <Info className="h-4 w-4 text-blue-600 mr-2" />
-            <AlertDescription className="text-sm">
-              לצורך הדגמה: שם משתמש: <strong>admin</strong>, סיסמה: <strong>admin123</strong>
-            </AlertDescription>
-          </Alert>
-          
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="username">שם משתמש</Label>

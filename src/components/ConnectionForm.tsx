@@ -6,8 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ArrowRight, Database, Server, AlertCircle, Loader2, InfoIcon } from 'lucide-react';
+import { ArrowRight, Database, Server, AlertCircle, Loader2 } from 'lucide-react';
 
 const ConnectionForm: React.FC = () => {
   const { addConnection, loading, error } = useDatabase();
@@ -18,13 +17,12 @@ const ConnectionForm: React.FC = () => {
   const [port, setPort] = useState('3306');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [database, setDatabase] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!connectionName || !host || !port || !username || !database) {
+    if (!connectionName || !host || !port || !username) {
       toast({
         title: 'Missing Fields',
         description: 'Please fill out all required fields.',
@@ -36,7 +34,7 @@ const ConnectionForm: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      console.log('Submitting connection form:', { connectionName, host, port, username, database });
+      console.log('Submitting connection form:', { connectionName, host, port, username });
       
       const success = await addConnection({
         name: connectionName,
@@ -44,13 +42,13 @@ const ConnectionForm: React.FC = () => {
         port: parseInt(port, 10),
         username,
         password,
-        database,
+        database: connectionName.toLowerCase().replace(/\s+/g, '_'),
       });
       
       if (success) {
         toast({
           title: 'Connection Successful',
-          description: `Successfully connected to ${database} on ${host} (Demonstration Mode)`,
+          description: `Successfully connected to database on ${host}`,
         });
         
         // Reset form
@@ -59,7 +57,6 @@ const ConnectionForm: React.FC = () => {
         setPort('3306');
         setUsername('');
         setPassword('');
-        setDatabase('');
       } else {
         console.error('Connection failed with error:', error);
         // The error is already set in the context
@@ -97,14 +94,6 @@ const ConnectionForm: React.FC = () => {
         </div>
       </CardHeader>
       <CardContent>
-        <Alert className="mb-4 bg-amber-50 text-amber-800 border-amber-200">
-          <InfoIcon className="h-4 w-4 text-amber-600" />
-          <AlertTitle>Demonstration Mode</AlertTitle>
-          <AlertDescription className="text-sm">
-            This is a front-end demo only. In a real application, connecting to MySQL requires a secure backend service.
-          </AlertDescription>
-        </Alert>
-        
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="connection-name">Connection Name</Label>
@@ -177,19 +166,6 @@ const ConnectionForm: React.FC = () => {
             />
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="database">Database Name</Label>
-            <Input
-              id="database"
-              placeholder="my_database"
-              value={database}
-              onChange={(e) => setDatabase(e.target.value)}
-              className="focus-ring"
-              autoComplete="off"
-              required
-            />
-          </div>
-          
           {error && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
@@ -219,11 +195,6 @@ const ConnectionForm: React.FC = () => {
           </Button>
         </form>
       </CardContent>
-      <CardFooter className="text-sm text-muted-foreground border-t pt-4 px-6">
-        <p>
-          Note: In a production app, these credentials would be sent to a secure backend API, not used directly from the browser.
-        </p>
-      </CardFooter>
     </Card>
   );
 };
