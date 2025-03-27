@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ArrowRight, Database, Server, AlertCircle } from 'lucide-react';
+import { ArrowRight, Database, Server, AlertCircle, Loader2 } from 'lucide-react';
 
 const ConnectionForm: React.FC = () => {
   const { addConnection, loading, error } = useDatabase();
@@ -36,6 +36,8 @@ const ConnectionForm: React.FC = () => {
     setIsSubmitting(true);
     
     try {
+      console.log('Submitting connection form:', { connectionName, host, port, username, database });
+      
       const success = await addConnection({
         name: connectionName,
         host,
@@ -59,6 +61,7 @@ const ConnectionForm: React.FC = () => {
         setPassword('');
         setDatabase('');
       } else {
+        console.error('Connection failed with error:', error);
         // The error is already set in the context
         toast({
           title: 'Connection Failed',
@@ -190,8 +193,17 @@ const ConnectionForm: React.FC = () => {
             className="w-full"
             disabled={loading || isSubmitting}
           >
-            {loading || isSubmitting ? 'Connecting...' : 'Connect'}
-            {!loading && !isSubmitting && <ArrowRight className="ml-2 h-4 w-4" />}
+            {loading || isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <span>Connecting...</span>
+              </>
+            ) : (
+              <>
+                <span>Connect</span>
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </>
+            )}
           </Button>
         </form>
       </CardContent>

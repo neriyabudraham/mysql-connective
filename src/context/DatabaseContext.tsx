@@ -45,7 +45,9 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const savedConnections = localStorage.getItem('databaseConnections');
     if (savedConnections) {
       try {
-        setConnections(JSON.parse(savedConnections));
+        const parsed = JSON.parse(savedConnections);
+        setConnections(parsed);
+        console.log('Loaded saved connections:', parsed);
       } catch (err) {
         console.error('Failed to parse saved connections:', err);
       }
@@ -63,7 +65,9 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setError(null);
     
     try {
-      // Attempt to connect to the real database with proper validation
+      console.log('Attempting to connect with:', connectionDetails);
+      
+      // Attempt to connect to the database
       const success = await databaseService.connect(
         connectionDetails.host,
         connectionDetails.port,
@@ -73,6 +77,8 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       );
       
       if (success) {
+        console.log('Connection successful');
+        
         const newConnection: DatabaseConnection = {
           ...connectionDetails,
           id: Date.now().toString(),
@@ -86,10 +92,11 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         await refreshTables();
         return true;
       } else {
-        setError('Failed to connect to the database. Please check your credentials and ensure the database is accessible.');
+        setError('Connection failed. Please check your credentials and ensure the database is accessible.');
         return false;
       }
     } catch (err) {
+      console.error('Connection error:', err);
       if (err instanceof Error) {
         setError(`Connection error: ${err.message}`);
       } else {
@@ -120,7 +127,9 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setError(null);
       
       try {
-        // Reconnect to the database with proper validation
+        console.log('Switching to connection:', connection);
+        
+        // Reconnect to the database
         const success = await databaseService.connect(
           connection.host,
           connection.port,
@@ -136,6 +145,7 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           setError('Failed to reconnect to the database. The connection may no longer be valid.');
         }
       } catch (err) {
+        console.error('Reconnection error:', err);
         if (err instanceof Error) {
           setError(`Reconnection error: ${err.message}`);
         } else {
@@ -161,7 +171,9 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setError(null);
     
     try {
-      // Fetch real tables from the database service
+      console.log('Fetching tables for database:', activeConnection.database);
+      
+      // Fetch tables from the database service
       const tableNames = await databaseService.getTables(activeConnection.database);
       
       // Convert to TableInfo format
@@ -170,9 +182,11 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         schema: 'public' // Default schema, would be fetched from real DB
       }));
       
+      console.log('Retrieved tables:', tableInfos);
       setTables(tableInfos);
       return tableInfos;
     } catch (err) {
+      console.error('Error fetching tables:', err);
       if (err instanceof Error) {
         setError(`Failed to fetch tables: ${err.message}`);
       } else {
