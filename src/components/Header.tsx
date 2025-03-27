@@ -36,7 +36,7 @@ const Header: React.FC = () => {
       <div className="container flex h-16 items-center px-4">
         <div className="flex items-center gap-2 mr-4">
           <Database className="h-6 w-6 text-primary" />
-          <span className="font-display text-xl font-medium">MySQL Connector</span>
+          <span className="font-display text-xl font-medium">מחבר MySQL</span>
         </div>
         
         {activeConnection && (
@@ -50,7 +50,7 @@ const Header: React.FC = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-56">
-                  <DropdownMenuLabel>Switch Database</DropdownMenuLabel>
+                  <DropdownMenuLabel>החלף מסד נתונים</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {connections.map((connection) => (
                     <DropdownMenuItem
@@ -62,7 +62,7 @@ const Header: React.FC = () => {
                       <Database className="mr-2 h-4 w-4" />
                       <span>{connection.name}</span>
                       {connection.id === activeConnection.id && (
-                        <span className="ml-auto text-xs text-muted-foreground">Active</span>
+                        <span className="mr-auto text-xs text-muted-foreground">פעיל</span>
                       )}
                     </DropdownMenuItem>
                   ))}
@@ -89,7 +89,7 @@ const Header: React.FC = () => {
                     <DropdownMenuLabel>חשבון משתמש</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout}>
-                      <LogOut className="mr-2 h-4 w-4" />
+                      <LogOut className="ml-2 h-4 w-4" />
                       <span>התנתק</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -103,7 +103,7 @@ const Header: React.FC = () => {
                 onClick={() => setIsDialogOpen(true)}
               >
                 <Plus className="h-4 w-4" />
-                <span>New Connection</span>
+                <span>חיבור חדש</span>
               </Button>
               
               <Button
@@ -113,7 +113,7 @@ const Header: React.FC = () => {
                 onClick={() => disconnectDatabase()}
               >
                 <LogOut className="h-4 w-4" />
-                <span>Disconnect</span>
+                <span>התנתק</span>
               </Button>
             </div>
           </div>
@@ -123,9 +123,9 @@ const Header: React.FC = () => {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>New Database Connection</DialogTitle>
+            <DialogTitle>חיבור חדש למסד נתונים</DialogTitle>
             <DialogDescription>
-              Connect to another MySQL database
+              התחבר למסד נתונים MySQL אחר
             </DialogDescription>
           </DialogHeader>
           <ConnectionForm />

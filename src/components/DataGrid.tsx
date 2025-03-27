@@ -76,7 +76,7 @@ const DataGrid: React.FC<DataGridProps> = ({ tableName }) => {
       setTotalRows(result.total);
     } catch (err) {
       console.error('Error fetching data:', err);
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      setError(err instanceof Error ? err.message : 'שגיאה לא ידועה התרחשה');
     } finally {
       setLoading(false);
     }
@@ -145,14 +145,14 @@ const DataGrid: React.FC<DataGridProps> = ({ tableName }) => {
       setEditedValues({});
       
       toast({
-        title: 'Changes Saved',
-        description: `Successfully updated row with ID ${id}`,
+        title: 'השינויים נשמרו',
+        description: `השורה עם המזהה ${id} עודכנה בהצלחה`,
       });
     } catch (err) {
       console.error('Error updating row:', err);
       toast({
-        title: 'Update Failed',
-        description: err instanceof Error ? err.message : 'Failed to update row',
+        title: 'העדכון נכשל',
+        description: err instanceof Error ? err.message : 'העדכון נכשל',
         variant: 'destructive',
       });
     }
@@ -168,10 +168,11 @@ const DataGrid: React.FC<DataGridProps> = ({ tableName }) => {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search..."
+              placeholder="חיפוש..."
               className="pl-9 focus-ring"
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
+              dir="rtl"
             />
           </form>
           
@@ -183,7 +184,7 @@ const DataGrid: React.FC<DataGridProps> = ({ tableName }) => {
             className="gap-1"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            <span>Refresh</span>
+            <span>רענן</span>
           </Button>
         </div>
         
@@ -194,7 +195,7 @@ const DataGrid: React.FC<DataGridProps> = ({ tableName }) => {
           className="gap-1"
         >
           <Edit className="h-4 w-4" />
-          <span>{editMode ? "Exit Edit Mode" : "Enter Edit Mode"}</span>
+          <span>{editMode ? "צא ממצב עריכה" : "הפעל מצב עריכה"}</span>
         </Button>
       </div>
       
@@ -212,7 +213,7 @@ const DataGrid: React.FC<DataGridProps> = ({ tableName }) => {
                       className="h-8 p-0 font-medium"
                     >
                       {column.name}
-                      <span className="ml-2">
+                      <span className="mr-2">
                         {sortColumn === column.name ? (
                           sortDirection === 'asc' ? (
                             <ChevronUp className="h-4 w-4" />
@@ -227,7 +228,7 @@ const DataGrid: React.FC<DataGridProps> = ({ tableName }) => {
                   </TableHead>
                 ))}
                 {editMode && (
-                  <TableHead className="w-[100px]">Actions</TableHead>
+                  <TableHead className="w-[100px]">פעולות</TableHead>
                 )}
               </TableRow>
             </TableHeader>
@@ -271,7 +272,7 @@ const DataGrid: React.FC<DataGridProps> = ({ tableName }) => {
                     className="h-24 text-center"
                   >
                     <div className="flex flex-col items-center justify-center gap-1 py-4">
-                      <p className="text-sm text-muted-foreground">No results found</p>
+                      <p className="text-sm text-muted-foreground">לא נמצאו תוצאות</p>
                       {searchValue && (
                         <Button
                           variant="link"
@@ -282,7 +283,7 @@ const DataGrid: React.FC<DataGridProps> = ({ tableName }) => {
                             fetchData();
                           }}
                         >
-                          Clear search
+                          נקה חיפוש
                         </Button>
                       )}
                     </div>
@@ -298,11 +299,12 @@ const DataGrid: React.FC<DataGridProps> = ({ tableName }) => {
                             value={editedValues[column.name] ?? row[column.name] ?? ''}
                             onChange={(e) => handleInputChange(column.name, e.target.value)}
                             className="h-8 focus-ring"
+                            dir="auto"
                           />
                         ) : (
                           <div className="truncate max-w-xs">
                             {row[column.name] === null || row[column.name] === undefined
-                              ? <span className="text-muted-foreground italic">null</span>
+                              ? <span className="text-muted-foreground italic">ריק</span>
                               : String(row[column.name])}
                           </div>
                         )}
@@ -336,8 +338,8 @@ const DataGrid: React.FC<DataGridProps> = ({ tableName }) => {
                             onClick={() => startEditing(rowIndex, row)}
                             className="opacity-0 group-hover:opacity-100 transition-opacity"
                           >
-                            <Edit className="h-4 w-4 mr-1" />
-                            Edit
+                            <Edit className="h-4 w-4 ml-1" />
+                            ערוך
                           </Button>
                         )}
                       </TableCell>
@@ -353,17 +355,17 @@ const DataGrid: React.FC<DataGridProps> = ({ tableName }) => {
       {!loading && !error && rows.length > 0 && totalPages > 1 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
-            Showing{' '}
+            מציג{' '}
             <span className="font-medium">
               {currentPage * pageSize + 1}-{Math.min((currentPage + 1) * pageSize, totalRows)}
             </span>{' '}
-            of <span className="font-medium">{totalRows}</span> results
+            מתוך <span className="font-medium">{totalRows}</span> תוצאות
           </div>
           
           <Pagination>
             <PaginationContent>
               <PaginationItem>
-                <PaginationPrevious
+                <PaginationNext
                   onClick={() => handlePageChange(Math.max(0, currentPage - 1))}
                   isDisabled={currentPage === 0}
                   className={currentPage === 0 ? "pointer-events-none opacity-50" : ""}
@@ -395,7 +397,7 @@ const DataGrid: React.FC<DataGridProps> = ({ tableName }) => {
               })}
               
               <PaginationItem>
-                <PaginationNext
+                <PaginationPrevious
                   onClick={() => handlePageChange(Math.min(totalPages - 1, currentPage + 1))}
                   isDisabled={currentPage === totalPages - 1}
                   className={currentPage === totalPages - 1 ? "pointer-events-none opacity-50" : ""}

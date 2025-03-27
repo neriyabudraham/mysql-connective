@@ -37,10 +37,10 @@ const TableView = () => {
               className="gap-1"
             >
               <ArrowLeft className="h-4 w-4" />
-              <span>Back to Tables</span>
+              <span>חזור לטבלאות</span>
             </Button>
             
-            <div className="flex items-center gap-2 ml-4">
+            <div className="flex items-center gap-2 mr-4">
               <div className="p-1.5 rounded-md bg-primary/10">
                 <LayoutGrid className="h-5 w-5 text-primary" />
               </div>
@@ -51,7 +51,7 @@ const TableView = () => {
           </div>
           
           <div className="flex items-center gap-1 bg-muted/50 text-muted-foreground text-sm px-3 py-1 rounded-full">
-            <Database className="h-3.5 w-3.5 mr-1" />
+            <Database className="h-3.5 w-3.5 ml-1" />
             <span>{activeConnection.database}</span>
           </div>
         </div>

@@ -4,8 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { useDatabase } from '@/context/DatabaseContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Database, Table2 } from 'lucide-react';
+import { RefreshCw, Database, Table2, Plus, Link, Trash2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import EndpointManager from '@/components/EndpointManager';
 
 const TableList: React.FC = () => {
   const { activeConnection, tables, refreshTables, loading, error } = useDatabase();
@@ -36,10 +37,10 @@ const TableList: React.FC = () => {
           <div className="space-y-1">
             <CardTitle className="text-xl font-medium flex items-center gap-2">
               <Database className="h-5 w-5 text-primary" />
-              Database Tables
+              טבלאות מסד הנתונים
             </CardTitle>
             <CardDescription>
-              Select a table to view and edit its data
+              בחר טבלה כדי לצפות ולערוך את הנתונים שלה
             </CardDescription>
           </div>
           <Button
@@ -50,7 +51,7 @@ const TableList: React.FC = () => {
             className="gap-1"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            <span>Refresh</span>
+            <span>רענן</span>
           </Button>
         </div>
       </CardHeader>
@@ -76,30 +77,34 @@ const TableList: React.FC = () => {
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
               <Database className="h-5 w-5 text-primary" />
             </div>
-            <h3 className="mt-3 text-sm font-medium">No tables found</h3>
+            <h3 className="mt-3 text-sm font-medium">לא נמצאו טבלאות</h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              Refresh to check for tables in this database
+              רענן כדי לבדוק אם קיימות טבלאות במסד נתונים זה
             </p>
           </div>
         ) : (
           <div className="grid gap-2">
             {tables.map((table) => (
-              <Button
-                key={table.name}
-                variant="outline"
-                className="h-auto justify-start gap-3 px-4 py-3 text-left hover:bg-muted/50"
-                onClick={() => handleTableClick(table.name)}
-              >
-                <div className="flex h-9 w-9 items-center justify-center rounded-md border bg-primary/10">
-                  <Table2 className="h-5 w-5 text-primary" />
-                </div>
-                <div className="space-y-0.5">
-                  <div className="font-medium">{table.name}</div>
-                  <div className="text-xs text-muted-foreground">
-                    Schema: {table.schema}
+              <div key={table.name} className="flex flex-col gap-2">
+                <Button
+                  variant="outline"
+                  className="h-auto justify-start gap-3 px-4 py-3 text-right hover:bg-muted/50"
+                  onClick={() => handleTableClick(table.name)}
+                >
+                  <div className="flex h-9 w-9 items-center justify-center rounded-md border bg-primary/10">
+                    <Table2 className="h-5 w-5 text-primary" />
                   </div>
+                  <div className="space-y-0.5">
+                    <div className="font-medium">{table.name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      סכמה: {table.schema}
+                    </div>
+                  </div>
+                </Button>
+                <div className="ml-12 flex items-center">
+                  <EndpointManager tableName={table.name} />
                 </div>
-              </Button>
+              </div>
             ))}
           </div>
         )}
